@@ -45,5 +45,39 @@ var app = {
         receivedElement.setAttribute('style', 'display:block;');
 
         console.log('Received Event: ' + id);
+    },
+    tmpFile : "myrecording.wav",
+    record : function() {
+    	console.log('Recording');
+		var media = new Media(this.tmpFile,
+			// success callback
+			function() {
+				console.log("recordAudio():Audio Success");
+			},
+
+			// error callback
+			function(err) {
+				console.log("recordAudio():Audio Error: "+ err.code);
+			}
+		);
+
+		// Record audio
+		setTimeout(function(){media.stopRecord()},1000);
+		media.startRecord();
+    },
+    play : function() {
+    	console.log('Playing');
+		var media = new Media(this.tmpFile,
+			// success callback
+			function() {
+				console.log("play():Audio Success");
+			},
+
+			// error callback
+			function(err) {
+				console.log("play():Audio Error: "+ err.code);
+			}
+		);
+		media.play();    	
     }
 };
