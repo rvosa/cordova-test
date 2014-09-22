@@ -98,10 +98,10 @@ var BPST = BPST || {};
 		this.showOnly = function(id) {
 			$('.showOnly').each(function(){
 				if ( this.id == id ) {
-					$(this).show('slow');
+					$(this).show();
 				}
 				else {
-					$(this).hide('slow');
+					$(this).hide();
 				}
 			});
 		};
