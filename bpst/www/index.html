@@ -27,20 +27,47 @@
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
         <link rel="stylesheet" type="text/css" href="css/index.css" />
-        <title>Hello World</title>
+        <title>BabyPhone SleepTracker</title>
     </head>
     <body>
         <div class="app">
-            <h1>PhoneGap</h1>
+            <h1>BabyPhone SleepTracker</h1>
+            
+            <!-- device section -->
             <div id="deviceready" class="blink">
                 <p class="event listening">Connecting to Device</p>
-                <p class="event received">Device is Ready<br />
-                	<button value="record" ontouchstart="app.record()">Record</button><br />
-					<button value="play" ontouchstart="app.play()" />Play</button><br />
-                </p>
+                <p class="event received">Device is Ready</p>
             </div>
+            
+            <!-- mode section -->
+            <div id="mode" class="showOnly">
+                <input type="radio" name="mode" value="baby" checked="checked" />Baby
+                <input type="radio" name="mode" value="parent" />Parent
+                <button id="setRole">continue</button>
+            </div>
+
+            <!-- session section -->
+            <div id="session" class="showOnly">
+                <div id="baby" class="sessionPart"></div>
+                <div id="parent" class="sessionPart"></div>
+                <button id="startSession">continue</button>
+            </div>
+        
+            <!-- run section -->
+            <div id="run" class="showOnly">
+                <div id="action">...</div>
+                <div id="status">status</div>
+                <button id="start">start</button>
+            </div>
+            
         </div>
         <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/uuid.js"></script>
+        <script type="text/javascript" src="js/jquery.js"></script>
+        <script type="text/javascript" src="js/oocontroller.js"></script>
+        <script type="text/javascript" src="js/oomodel.js"></script>
+        <script type="text/javascript" src="js/oosender.js"></script>
+        <script type="text/javascript" src="js/ooreceiver.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript">
             app.initialize();
