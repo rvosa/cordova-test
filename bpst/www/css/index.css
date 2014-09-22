@@ -97,6 +97,10 @@ h1 {
     display:none;
 }
 
+.showOnly {
+	display:none;
+}
+
 @keyframes fade {
     from { opacity: 1.0; }
     50% { opacity: 0.4; }
