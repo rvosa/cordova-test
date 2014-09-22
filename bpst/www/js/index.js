@@ -16,11 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+var c = new BPST.Controller();
+ 
 var app = {
     // Application Constructor
     initialize: function() {
         this.bindEvents();
+        
+        // attach touch events
+        $('#setRole').on( 'touchstart', function(event){ c.setRole() });
+        $('#startSession').on( 'touchstart', function(event){ c.startSession() });
+        $('#start').on( 'touchstart', function(event){ c.run() });
+        console.log('Attached touch events');
+        
     },
+    
     // Bind Event Listeners
     //
     // Bind any events that are required on startup. Common events are:
@@ -28,6 +38,7 @@ var app = {
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
     },
+    
     // deviceready Event Handler
     //
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
@@ -35,6 +46,7 @@ var app = {
     onDeviceReady: function() {
         app.receivedEvent('deviceready');
     },
+    
     // Update DOM on a Received Event
     receivedEvent: function(id) {
         var parentElement = document.getElementById(id);
@@ -43,9 +55,12 @@ var app = {
 
         listeningElement.setAttribute('style', 'display:none;');
         receivedElement.setAttribute('style', 'display:block;');
-
+        
+        c.showOnly('mode');
         console.log('Received Event: ' + id);
     },
+    
+    /*
     tmpFile : "myrecording.wav",
     record : function() {
     	console.log('Recording');
@@ -80,4 +95,5 @@ var app = {
 		);
 		media.play();    	
     }
+    */
 };
