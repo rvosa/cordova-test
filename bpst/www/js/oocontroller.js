@@ -6,7 +6,7 @@ var BPST = BPST || {};
 		var role = 'baby';
 		var uuid = Math.uuid(6);
 		var session; // is set later
-		var baseUrl = 'http://127.0.0.1:8080/';
+		var baseUrl = 'http://192.168.178.11:8080/';
 		this.maxAttempts = 10;
 		this.intervalMs = 1000;
 

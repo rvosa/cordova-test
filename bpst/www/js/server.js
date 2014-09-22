@@ -4,9 +4,9 @@ var urlparser  = require('url');
 var mongojs    = require('mongojs');
 
 // addresses and ports
-var ip_http    = '127.0.0.1';
-var ip_mongo   = '127.0.0.1';
+var ip_http    = '192.168.178.11';
 var port_http  = '8080';
+var ip_mongo   = '127.0.0.1';
 var port_mongo = '27017';
 var client     = 'https://dl.dropboxusercontent.com';
 
@@ -16,6 +16,7 @@ var db = mongojs.connect(mongo_uri, [ 'sessions' ]);
 
 // instantiate server
 http.createServer(function (req, res) {
+    console.log('Incoming request from '+req.connection.remoteAddress);
 	
 	// parse url to get session ID
 	var parsed = urlparser.parse(req.url,true);
@@ -47,7 +48,7 @@ function emitResponse(session_id,res,req) {
 
 			// write header
 			res.writeHead(200, {
-				'Access-Control-Allow-Origin' : client,
+				'Access-Control-Allow-Origin' : req.connection.remoteAddress,
 				'Content-Type' : 'application/json'
 			});		
 		
@@ -60,8 +61,7 @@ function emitResponse(session_id,res,req) {
 			// found records, emit last seen
 			else {
 				var i = records.length - 1;
-				jsonEvent = JSON.stringify(records[i]);
-				res.write(jsonEvent);
+				res.write(JSON.stringify(records[i]));
 			}
 			res.end();
 		}	
