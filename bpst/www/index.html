@@ -29,7 +29,7 @@
         <link rel="stylesheet" type="text/css" href="css/index.css" />
         <title>BabyPhone SleepTracker</title>
     </head>
-    <body>
+    <body id="background">
         <div class="app">
             <h1>BabyPhone SleepTracker</h1>
             
@@ -39,10 +39,10 @@
                 <p class="event received">Device is Ready</p>
             </div>
             
-            <!-- mode section -->
-            <div id="mode" class="showOnly">
-                <input type="radio" name="mode" value="baby" checked="checked" />Baby
-                <input type="radio" name="mode" value="parent" />Parent
+            <!-- role section -->
+            <div id="role" class="showOnly">
+                <input type="radio" name="role" value="baby" checked="checked" />Baby
+                <input type="radio" name="role" value="parent" />Parent
                 <button id="setRole">continue</button>
             </div>
 
@@ -50,6 +50,7 @@
             <div id="session" class="showOnly">
                 <div id="baby" class="sessionPart"></div>
                 <div id="parent" class="sessionPart"></div>
+                <button id="backToRole">back</button>
                 <button id="startSession">continue</button>
             </div>
         
@@ -57,6 +58,7 @@
             <div id="run" class="showOnly">
                 <div id="action">...</div>
                 <div id="status">status</div>
+                <button id="backToSession">back</button>
                 <button id="start">start</button>
             </div>
             
