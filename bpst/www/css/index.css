@@ -41,7 +41,7 @@ body {
     height:100%;
     margin:0px;
     padding:0px;
-    text-transform:uppercase;
+    /* text-transform:uppercase; */
     width:100%;
 }
 
@@ -57,6 +57,20 @@ body {
     padding:180px 0px 0px 0px;     /* image height is 200px (bottom 20px are overlapped with text) */
     margin:-115px 0px 0px -112px;  /* offset vertical: half of image height and text area height */
                                    /* offset horizontal: half of text area width */
+}
+
+.baby {
+    /*
+    background:url(../img/bg-baby.png) no-repeat center;
+    position: absolute;
+    */
+}
+
+.parent {
+    /*
+    background:url(../img/bg-parent.png) no-repeat center;
+    position: absolute;
+    */
 }
 
 /* Landscape layout (with min-width) */
