@@ -8,7 +8,6 @@ var ip_http    = '192.168.178.11';
 var port_http  = '8080';
 var ip_mongo   = '127.0.0.1';
 var port_mongo = '27017';
-var client     = 'https://dl.dropboxusercontent.com';
 
 // database handle
 var mongo_uri  = 'mongodb://' + ip_mongo + ':' + port_mongo + '/babyphone';
