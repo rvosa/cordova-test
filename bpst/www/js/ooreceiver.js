@@ -27,7 +27,7 @@ var BPST = BPST || {};
 						function(data) {
 				
 							// have seen other actor
-							if ( data.role != this.getRole() ) {						
+							if ( data.role !== this.getRole() ) {
 								this.setStatus('alert at '+data.time);
 							}	
 						}
