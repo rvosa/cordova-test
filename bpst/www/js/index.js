@@ -25,7 +25,9 @@ var app = {
         
         // attach touch events
         $('#setRole').on( 'touchstart', function(event){ c.setRole() });
+        $('#backToRole').on( 'touchstart', function(event){c.showOnly('role')});
         $('#startSession').on( 'touchstart', function(event){ c.startSession() });
+        $('#backToSession').on( 'touchstart', function(event){c.showOnly('session')});
         $('#start').on( 'touchstart', function(event){ c.run() });
         console.log('Attached touch events');
         
@@ -55,8 +57,8 @@ var app = {
 
         listeningElement.setAttribute('style', 'display:none;');
         receivedElement.setAttribute('style', 'display:block;');
-        
-        c.showOnly('mode');
+
+        c.showOnly('role');
         console.log('Received Event: ' + id);
     },
     
