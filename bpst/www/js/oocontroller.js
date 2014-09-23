@@ -10,37 +10,53 @@ var BPST = BPST || {};
 		this.maxAttempts = 10;
 		this.intervalMs = 1000;
 
+        // Triggered after radio button selection is confirmed. Reads
+        // selected role, advances UI to challenge/response fields.
 		this.setRole = function () {
-			var self = this;	
-			role = $("input[type='radio'][name='mode']:checked").val();
-			$('#title').text(role);
+			role = $("input[type='radio'][name='role']:checked").val();
+
+            // Insert UUID in div that corresponds with focal role,
+            // create text input for challenge response.
 			$('.sessionPart').each(function(){
-				if ( this.id == role ) {
+				if ( this.id === role ) {
 					$(this).text(uuid);
 				}
 				else {
-					$(this).append('<input type="text" size="6" id="password" />');
+                    $(this).html('<input type="text" size="6" id="password" />');
 				}
 			});
+
+            // Change the class of the highest container div
+            // to the focal role so CSS can inherit from it.
+            $('#background').attr('class',role);
+
+            // Advance the UI
 			this.showOnly('session');
+            console.log('Selected role: '+role);
 		};
-		
+
+        // Returns the private static role variable.
 		this.getRole = function () {
 			return role;
 		};	
 
+        // Inserts provided text in #status element.
 		this.logStatus = function(statusText) {
 			$('#status').text(statusText);
 		};
 
+        // Inserts provided text in #action element.
 		this.logAction = function(actionText) {
 			$('#action').text(actionText);
 		};
 
+        // Inserts provided text in #start element.
 		this.toggleButton = function(text) {
 			$('#start').text(text);
 		};
 
+        // Performs AJAX GET request with data query string,
+        // passes returns JSON to provided handler function.
 		this.update = function (data,handler) {
 			var self = this;
 			$.ajax({
@@ -52,16 +68,20 @@ var BPST = BPST || {};
 				error    : function(xhr,status,err) {
 					self.logAction('retrying');
 					self.logStatus('error!');
+                    console.log('status: '+status);
+                    console.log('error: '+err);
 				}
 			});		
 		};
 
+        // Attempts to establish session by handshake iterations.
 		this.startSession = function() {
 			var self = this;		
 			var passInput = $('#password');
 			var value = passInput.val();
 			passInput.replaceWith(value);
-			session = $('#baby').text() + $('#parent').text();	
+			session = $('#baby').text() + $('#parent').text();
+            console.log("Entered password: "+value);
 	
 			// poll every second, 10 times
 			var attempts = 0;
@@ -80,7 +100,7 @@ var BPST = BPST || {};
 						self.logStatus('disconnected');
 				
 						// have seen other actor
-						if ( data.role != self.role ) {
+						if ( data.role !== self.role ) {
 							self.logAction('standing by');
 							self.logStatus('ready');		
 							self.showOnly('run');		
@@ -95,9 +115,11 @@ var BPST = BPST || {};
 			},this.intervalMs);
 		};
 
+        // Only shows the provided #id element, hides others in the
+        // .showOnly CSS class.
 		this.showOnly = function(id) {
 			$('.showOnly').each(function(){
-				if ( this.id == id ) {
+				if ( this.id === id ) {
 					$(this).show();
 				}
 				else {
@@ -105,20 +127,21 @@ var BPST = BPST || {};
 				}
 			});
 		};
-		
+
+        // Instantiates the Model object that fits the current role.
 		this.createModel = function(role) {
-			if ( role == 'baby' ) {
-				var model = new BPST.Sender();
-				model.setRole(role);
-				return model;
+            var model;
+			if ( role === 'baby' ) {
+				model = new BPST.Sender();
 			}
 			else {
-				var model = new BPST.Receiver();
-				model.setRole(role);
-				return model;
+				model = new BPST.Receiver();
 			}
+            model.setRole(role);
+            return model;
 		};		
-		
+
+        // Assigns listeners to Model and runs it.
 		this.run = function () {
 			var model = this.createModel(this.getRole());
 			model.setStatusListener(this.logStatus);
