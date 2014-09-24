@@ -15,15 +15,32 @@ var BPST = BPST || {};
 		this.setRole = function () {
 			role = $("input[type='radio'][name='role']:checked").val();
 
-            // Insert UUID in div that corresponds with focal role,
-            // create text input for challenge response.
+            // Insert UUID in field that corresponds with focal role
 			$('.sessionPart').each(function(){
 				if ( this.id === role ) {
-					$(this).text(uuid);
-				}
-				else {
-                    $(this).html('<input type="text" size="6" id="password" />');
-				}
+					$(this).val(uuid);
+                    $(this).prop('readonly',true);
+                }
+                else {
+                    $(this).val('Enter code');
+                    $(this).prop('readonly',false);
+
+                    /*
+                    // on focus: clear field
+                    $(this).on('focus',function(){
+                        if ( $(this).val() === 'Enter code' ) {
+                            $(this).val('');
+                        }
+                    });
+
+                    // on blur: add tooltip
+                    $(this).on('blur',function(){
+                        if ( $(this).val() === '' ) {
+                            $(this).val('Enter code');
+                        }
+                    });
+                    //*/
+                }
 			});
 
             // Change the class of the highest container div
@@ -56,7 +73,7 @@ var BPST = BPST || {};
 		};
 
         // Performs AJAX GET request with data query string,
-        // passes returns JSON to provided handler function.
+        // passes returned JSON to provided handler function.
 		this.update = function (data,handler) {
 			var self = this;
 			$.ajax({
