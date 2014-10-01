@@ -1,138 +1,287 @@
-var Wav = function(opt_params){
-	
-	/**
-	 * @private
-	 */
-	this._sampleRate = opt_params && opt_params.sampleRate ? opt_params.sampleRate : 44100;
-	
-	/**
-	 * @private
-	 */
-	this._channels = opt_params && opt_params.channels ? opt_params.channels : 2;  
-	
-	/**
-	 * @private
-	 */
-	this._eof = true;
-	
-	/**
-	 * @private
-	 */
-	this._bufferNeedle = 0;
-	
-	/**
-	 * @private
-	 */
-	this._buffer;
-	
+/*
+
+ wav.js - a javascript audiolib for reading WAVE files
+
+ Reads the Format chunk of a WAVE file using the RIFF specification.
+
+ Only supports slice() on uncompressed PCM format.
+ Only supports one Data chunk.
+
+ NOTE: Does not auto-correct:
+ - Incorrect block alignment values
+ - Incorrect Average Samples Per Second value
+ - Missing word alignment padding
+
+ @author  David Lindkvist
+ @twitter ffdead
+
+ */
+
+
+/**
+ * Constructor: Parse Format chunk of WAV files.
+ *
+ * Fires onloadend() function after successful load.
+ *
+ * @param {File|Blob|ArrayBuffer} RIFF formatted WAV file
+ */
+function wav(file) {
+
+    // status
+    this.EMPTY              = 0; //  No data has been loaded yet.
+    this.LOADING            = 1; // Data is currently being loaded.
+    this.DONE               = 2; // The entire read request has been completed.
+    this.UNSUPPORTED_FORMAT = 3; // Error state - file format not recognized
+    this.readyState         = this.EMPTY;
+    this.error              = undefined;
+
+    // original File and loaded ArrayBuffer
+    this.file          = file instanceof Blob ? file : undefined;
+    this.buffer        = file instanceof ArrayBuffer ? file : undefined;
+    this.data          = undefined;
+
+    // format
+    this.chunkID       = undefined; // must be RIFF
+    this.chunkSize     = undefined; // size of file after this field
+    this.format        = undefined; // must be WAVE
+    this.compression   = undefined; // 1=PCM
+    this.numChannels   = undefined; // Mono = 1, Stereo = 2
+    this.sampleRate    = undefined; // 8000, 44100, etc.
+    this.byteRate      = undefined; // bytes per second
+    this.blockAlign    = undefined; // number of bytes for one sample including all channels.
+    this.bitsPerSample = undefined; // 8 bits = 8, 16 bits = 16, etc.
+
+    // data chunk
+    this.dataOffset    = -1; // index of data block
+    this.dataLength    = -1; // size of data block
+
+    // let's take a peek
+    this.peek();
+}
+
+/**
+ * Load header as an ArrayBuffer and parse format chunks
+ */
+wav.prototype.peek = function () {
+
+    this.readyState = this.LOADING;
+
+    // see if buffer is already loaded
+    if (this.buffer !== undefined) {
+        return this.parseArrayBuffer();
+    }
+
+    var reader = new FileReader();
+    var that = this;
+
+    // only load the first 44 bytes of the header
+    var headerBlob = this.sliceFile(0, 44);
+    reader.readAsArrayBuffer(headerBlob);
+
+    reader.onloadend = function() {
+        that.buffer = this.result;
+        that.parseArrayBuffer.apply(that);
+    };
 };
 
-Wav.prototype.setBuffer = function(buffer){
-	this._buffer = this.getWavInt16Array(buffer);
-	this._bufferNeedle = 0;
-	this._internalBuffer = '';
-	this._hasOutputHeader = false;
-	this._eof = false;
+wav.prototype.parseArrayBuffer = function () {
+    try {
+        this.parseHeader();
+        this.parseData();
+        this.readyState = this.DONE;
+    }
+    catch (e) {
+        this.readyState = this.UNSUPPORTED_FORMAT;
+        this.error      = e;
+    }
+
+    // trigger onloadend callback if exists
+    if (this.onloadend) {
+        this.onloadend.apply(this);
+    }
 };
 
-Wav.prototype.getBuffer = function(len){
-	
-	var rt;
-	if( this._bufferNeedle + len >= this._buffer.length ){
-		rt = new Int16Array(this._buffer.length - this._bufferNeedle);
-		this._eof = true;
-	}
-	else {
-		rt = new Int16Array(len);
-	}
-	
-	for(var i=0; i<rt.length; i++){
-		rt[i] = this._buffer[i+this._bufferNeedle];
-	}
-	this._bufferNeedle += rt.length;
-	
-	return  rt.buffer;
-	
+/**
+ * Walk through RIFF and WAVE format chunk
+ * Based on https://ccrma.stanford.edu/courses/422/projects/WaveFormat/
+ * and http://www.sonicspot.com/guide/wavefiles.html
+ */
+wav.prototype.parseHeader = function () {
 
+    this.chunkID       = this.readText(0, 4);
+    this.chunkSize     = this.readDecimal(4, 4);
+    if (this.chunkID !== 'RIFF') throw 'NOT_SUPPORTED_FORMAT';
+
+    this.format        = this.readText(8, 4);
+    if (this.format !== 'WAVE') throw 'NOT_SUPPORTED_FORMAT';
+
+    this.compression   = this.readDecimal(20, 2);
+    this.numChannels   = this.readDecimal(22, 2);
+    this.sampleRate    = this.readDecimal(24, 4);
+
+    // == SampleRate * NumChannels * BitsPerSample/8
+    this.byteRate      = this.readDecimal(28, 4);
+
+    // == NumChannels * BitsPerSample/8
+    this.blockAlign    = this.readDecimal(32, 2);
+
+    this.bitsPerSample = this.readDecimal(34, 2);
 };
 
-Wav.prototype.eof = function(){
-	return this._eof;
-};
+/**
+ * Walk through all subchunks and look for the Data chunk
+ */
+wav.prototype.parseData = function () {
 
-Wav.prototype.getWavInt16Array = function(buffer){
-		
-	var intBuffer = new Int16Array(buffer.length + 23), tmp;
-	
-	intBuffer[0] = 0x4952; // "RI"
-	intBuffer[1] = 0x4646; // "FF"
-	
-	intBuffer[2] = (2*buffer.length + 15) & 0x0000ffff; // RIFF size
-	intBuffer[3] = ((2*buffer.length + 15) & 0xffff0000) >> 16; // RIFF size
-	
-	intBuffer[4] = 0x4157; // "WA"
-	intBuffer[5] = 0x4556; // "VE"
-		
-	intBuffer[6] = 0x6d66; // "fm"
-	intBuffer[7] = 0x2074; // "t "
-		
-	intBuffer[8] = 0x0012; // fmt chunksize: 18
-	intBuffer[9] = 0x0000; //
-		
-	intBuffer[10] = 0x0001; // format tag : 1 
-	intBuffer[11] = this._channels; // channels: 2
-	
-	intBuffer[12] = this._sampleRate & 0x0000ffff; // sample per sec
-	intBuffer[13] = (this._sampleRate & 0xffff0000) >> 16; // sample per sec
-	
-	intBuffer[14] = (2*this._channels*this._sampleRate) & 0x0000ffff; // byte per sec
-	intBuffer[15] = ((2*this._channels*this._sampleRate) & 0xffff0000) >> 16; // byte per sec
-	
-	intBuffer[16] = 0x0004; // block align
-	intBuffer[17] = 0x0010; // bit per sample
-	intBuffer[18] = 0x0000; // cb size
-	intBuffer[19] = 0x6164; // "da"
-	intBuffer[20] = 0x6174; // "ta"
-	intBuffer[21] = (2*buffer.length) & 0x0000ffff; // data size[byte]
-	intBuffer[22] = ((2*buffer.length) & 0xffff0000) >> 16; // data size[byte]	
+    var chunkType = this.readText(38, 4);
+    //var chunkSize = this.readDecimal(44, 4);
 
-	for (var i = 0; i < buffer.length; i++) {
-		tmp = buffer[i];
-		if (tmp >= 1) {
-			intBuffer[i+23] = (1 << 15) - 1;
-		}
-		else if (tmp <= -1) {
-			intBuffer[i+23] = -(1 << 15);
-		}
-		else {
-			intBuffer[i+23] = Math.round(tmp * (1 << 15));
-		}
-	}
-	
-	return intBuffer;
-};
-var i=0, vol=0.1,
-    sampleRate = 48000, 
-    wav = new Wav({sampleRate: sampleRate, channels: 1}),
-    buffer = new Float32Array(sampleRate);
-
-while(i<sampleRate){
-    if( parseInt(i/100) % 2 ){
-        buffer[i] = -vol;
+    // only support files where data chunk is first (canonical format)
+    if (chunkType === 'data') {
+        //this.dataLength = chunkSize;
+        this.dataOffset = 44;
+        this.dataLength = this.file.size - this.dataOffset;
     }
     else {
-        buffer[i] = vol;
+        // duration cant be calculated && slice will not work
+        throw 'NOT_CANONICAL_FORMAT: unsupported "' + chunkType + '"" chunk - was expecting data';
     }
-    i++;
-}
-wav.setBuffer(buffer);
+};
 
-var srclist = [];
-while( !wav.eof() ){
-    srclist.push(wav.getBuffer(1000));
-}
 
-var b = new Blob(srclist, {type:'audio/wav'});
-var URLObject = window.webkitURL || window.URL;
-var url = URLObject.createObjectURL(b);
-document.write("<a href='"+url+"'>play</a>");
+
+/**
+ * Returns slice of file as new wav file
+ * @param {int} start  Start offset in seconds from beginning of file
+ * @param {int} end    Length of requested slice in seconds
+ */
+wav.prototype.slice = function (start, length, callback) {
+
+    var reader = new FileReader();
+    var that = this;
+
+    // use the byterate to calculate number of bytes per second
+    var start = this.dataOffset + (start * this.byteRate);
+    var end = start + (length * this.byteRate);
+
+    var headerBlob = this.sliceFile(0, 44);
+    var dataBlob = this.sliceFile(start, end);
+
+    // concant header and data slice
+    var blob = new Blob([headerBlob, dataBlob]);
+
+    reader.readAsArrayBuffer(blob);
+    reader.onloadend = function() {
+
+        // update chunkSize in header
+        var chunkSize = new Uint8Array(this.result, 4, 4);
+        that.tolittleEndianDecBytes(chunkSize, 36+dataBlob.size);
+
+        // update dataChunkSize in header
+        var dataChunkSize = new Uint8Array(this.result, 40, 4);
+        that.tolittleEndianDecBytes(dataChunkSize, dataBlob.size);
+
+        if (callback) callback.apply(that, [this.result]);
+    };
+};
+
+/**
+ * Populates a TypedArray subclass with samples that is processed
+ * by the handler
+ */
+wav.prototype.getSamples = function (handler) {
+    var reader = new FileReader();
+    var that = this;
+    var dataBlob = this.sliceFile(this.dataOffset, this.dataLength + this.dataOffset);
+    reader.readAsArrayBuffer(dataBlob);
+    reader.onloadend = function() {
+        if (that.bitsPerSample === 8) {
+            handler(new Uint8Array(this.result));
+        }
+        else if (that.bitsPerSample === 16) {
+            handler(new Int16Array(this.result));
+        }
+    };
+}
+ //*/
+
+/**
+ * Reads slice from buffer as String
+ */
+wav.prototype.readText = function (start, length) {
+    var a = new Uint8Array(this.buffer, start, length);
+    var str = '';
+    for(var i = 0; i < a.length; i++) {
+        str += String.fromCharCode(a[i]);
+    }
+    return str;
+};
+
+/**
+ * Reads slice from buffer as Decimal
+ */
+wav.prototype.readDecimal = function (start, length) {
+    var a = new Uint8Array(this.buffer, start, length);
+    return this.fromLittleEndianDecBytes(a);
+};
+
+/**
+ * Calculates decimal value from Little-endian decimal byte array
+ */
+wav.prototype.fromLittleEndianDecBytes = function (a) {
+    var sum = 0;
+    for(var i = 0; i < a.length; i++)
+        sum |= a[i] << (i*8);
+    return sum;
+};
+
+/**
+ * Populate Little-endian decimal byte array from decimal value
+ */
+wav.prototype.tolittleEndianDecBytes = function (a, decimalVal) {
+    for(var i=0; i<a.length; i++) {
+        a[i] = decimalVal & 0xFF;
+        decimalVal >>= 8;
+    }
+    return a;
+};
+
+
+/**
+ * Slice the File using either standard slice or webkitSlice
+ */
+wav.prototype.sliceFile = function (start, end) {
+    if (this.file.slice) return this.file.slice(start, end);
+    if (this.file.webkitSlice) return this.file.webkitSlice(start, end);
+};
+
+
+wav.prototype.isCompressed = function () {
+    return this.compression !== 1;
+};
+
+wav.prototype.isMono = function () {
+    return this.numChannels === 1;
+};
+
+wav.prototype.isStereo = function () {
+    return this.numChannels === 2;
+};
+
+wav.prototype.getDuration = function () {
+    return this.dataLength > -1 ? (this.dataLength / this.byteRate) : -1;
+};
+
+
+/**
+ * Override toString
+ */
+wav.prototype.toString = function () {
+    return (this.file ? this.file.name : 'noname.wav') + ' (' + this.chunkID + '/' + this.format + ')\n' +
+        'Compression: ' + (this.isCompressed() ? 'yes' : 'no (PCM)') + '\n' +
+        'Number of channels: ' + this.numChannels + ' (' + (this.isStereo()?'stereo':'mono') + ')\n' +
+        'Sample rate: ' + this.sampleRate + ' Hz\n'+
+        'Sample size: ' + this.bitsPerSample + '-bit\n'+
+        'Duration: ' + Math.round(this.getDuration()) + ' seconds';
+};
+
