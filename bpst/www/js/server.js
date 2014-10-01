@@ -2,9 +2,10 @@
 var http       = require('http');
 var urlparser  = require('url');
 var mongojs    = require('mongojs');
+var os         = require('os');
 
 // addresses and ports
-var ip_http    = '192.168.178.11';
+var ip_http    = getIP();
 var port_http  = '8080';
 var ip_mongo   = '127.0.0.1';
 var port_mongo = '27017';
@@ -42,13 +43,15 @@ function persistEvent (session_id,query,req) {
 }
 
 function emitResponse(session_id,res,req) {
+    console.log("going to emit response");
+
 	db.sessions.find( { 'session' : session_id },
 		function (err,records) {
 
 			// write header
 			res.writeHead(200, {
-				'Access-Control-Allow-Origin' : req.connection.remoteAddress,
-				'Content-Type' : 'application/json'
+				'Access-Control-Allow-Origin' : '*',
+				'Content-Type' : 'text/plain'
 			});		
 		
 			// no previous records found, emit empty object
@@ -61,8 +64,25 @@ function emitResponse(session_id,res,req) {
 			else {
 				var i = records.length - 1;
 				res.write(JSON.stringify(records[i]));
+                console.log("returned record "+i+" in session "+session_id);
 			}
 			res.end();
 		}	
 	);
+}
+
+function getIP() {
+    var ifaces = os.networkInterfaces();
+    var ip;
+    for ( var dev in ifaces ) {
+        var alias = 0;
+        ifaces[dev].forEach(function(details){
+            if ( details.family == 'IPv4' ) {
+                console.log(dev+(alias?':'+alias:''),details.address);
+                ++alias;
+                ip = details.address;
+            }
+        });
+    }
+    return ip;
 }
