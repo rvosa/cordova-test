@@ -15,7 +15,7 @@ var BPST = BPST || {};
 		this.setRole = function () {
 			role = $("input[type='radio'][name='role']:checked").val();
 
-            // Insert UUID in field that corresponds with focal role
+            // Insert UUID in field that corresponds with selected role
 			$('.sessionPart').each(function(){
 				if ( this.id === role ) {
 					$(this).val(uuid);
@@ -72,33 +72,44 @@ var BPST = BPST || {};
 			$('#start').text(text);
 		};
 
-        // Performs AJAX GET request with data query string,
+        // Performs GET request with data query string,
         // passes returned JSON to provided handler function.
-		this.update = function (data,handler) {
-			var self = this;
+		this.update = function (requestData,responseHandler) {
+
+            /*
+            XXX it appears that phonegap serve creates a sandbox
+            from whence escape is only possible by jumping through
+            hoops that we haven't figured out yet. This is further
+            complicated by the fact that we are doing a cross-domain
+            AJAX request, which is already limited.
+             */
+            $.mobile.allowCrossDomainPages = true;
+            $.support.cors = true;
+            var url = baseUrl + session;
+            console.log("going to get JSON from "+url);
 			$.ajax({
 				type     : 'GET',
-				url      : baseUrl + session,
-				success  : handler,
-				dataType : 'json',
-				data     : data,
+				url      : url,
+				success  : responseHandler,
+				dataType : 'text',
+				data     : requestData,
 				error    : function(xhr,status,err) {
 					self.logAction('retrying');
 					self.logStatus('error!');
                     console.log('status: '+status);
-                    console.log('error: '+err);
+
+                    // these fail to return anything on phonegap
+                    console.log('statusText: '+xhr.statusText);
+                    console.log('headers: '+xhr.getAllResponseHeaders());
 				}
-			});		
-		};
+			});
+        };
 
         // Attempts to establish session by handshake iterations.
 		this.startSession = function() {
-			var self = this;		
-			var passInput = $('#password');
-			var value = passInput.val();
-			passInput.replaceWith(value);
-			session = $('#baby').text() + $('#parent').text();
-            console.log("Entered password: "+value);
+			var self = this;
+			session = $('#baby').val() + $('#parent').val();
+            console.log("Session ID: "+session);
 	
 			// poll every second, 10 times
 			var attempts = 0;
@@ -115,6 +126,7 @@ var BPST = BPST || {};
 						attempts++;
 						self.logAction('polling');
 						self.logStatus('disconnected');
+                        console.log('polling attempt '+attempts);
 				
 						// have seen other actor
 						if ( data.role !== self.role ) {
@@ -128,7 +140,7 @@ var BPST = BPST || {};
 							clearInterval(intervalId);
 						}		
 					}
-				)
+				);
 			},this.intervalMs);
 		};
 
