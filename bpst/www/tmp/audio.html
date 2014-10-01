@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <script type="text/javascript" src="../js/wav.js"></script>
+    <script type="text/javascript" src="../js/jquery.js"></script>
+    <input type="file" id="files" />
+    <div id="bits"></div>
+    <div id="rate"></div>
+    <div id="channels"></div>
+    <div id="time"></div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script>
+        function handleFileSelect(evt) {
+            var files = evt.target.files; // FileList object
+
+            // iterate over files
+            for (var i = 0, f; f = files[i]; i++) {
+                var w = new wav(f);
+                var then = Date.now();
+
+                // done reading headers and blocks
+                w.onloadend = function () {
+
+                    // print file info
+                    $('#bits').text('bits: '+this.bitsPerSample);
+                    $('#rate').text('rate: '+this.sampleRate);
+                    $('#channels').text('channels: '+this.numChannels);
+
+                    // prepare variables
+                    var canvas = document.getElementById('canvas');
+                    var ctx    = canvas.getContext('2d');
+                    var range  = Math.pow(2,this.bitsPerSample) / 2;
+                    var height = canvas.height;
+                    var width  = canvas.width;
+                    var threshold = 0.75;
+
+                    // this handler would compute the mean over the absolute values
+                    w.getSamples(function(samples){
+                        ctx.beginPath();
+                        ctx.moveTo(0,height/2);
+
+                        // iterate over canvas
+                        for ( var x = 0; x < width; x++ ) {
+                            var index = Math.round( ( samples.length / width ) * x ); // sample index
+                            var volume =  samples[index] / range; // relative volume, between -1 and 1
+                            var y = Math.round( volume * height + height / 2 ); // between 0 and height
+
+                            // do something with samples above threshold
+                            if ( Math.abs(volume) > threshold ) {
+                                //ctx.strokeStyle = '#FF0000';
+                            }
+
+                            // draw line
+                            ctx.lineTo(x,y);
+                            ctx.stroke();
+                        }
+                        ctx.closePath();
+                        var now = Date.now();
+                        $('#time').text( 'processing time: ' + ( now - then ) + 'ms' );
+                    });
+                };
+            }
+        }
+        $('#files').on('change',handleFileSelect);
+    </script>
+</body>
+</html>
