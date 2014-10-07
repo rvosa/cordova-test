@@ -20,6 +20,11 @@
     -webkit-tap-highlight-color: rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
 }
 
+html, body, .app {
+    min-height: 100% !important;
+    height: 100%;
+}
+
 body {
     -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
     -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
@@ -39,15 +44,14 @@ body {
     background-attachment:fixed;
 */
 
-    /*
-    font-family:'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
-    font-size:12px;
-    */
-    height:100%;
-    margin:0px;
-    padding:0px;
+
+    /*font-family:'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;*/
+    /*font-size:12px;*/
+    /*height:100%;*/
+    /*margin:0px;
+    padding:0px;*/
     /* text-transform:uppercase; */
-    width:100%;
+    /*width:100%;*/
 }
 
 /* Portrait layout (default) */
@@ -60,9 +64,13 @@ body {
 /*    height:50px;                   /* text area height */
 /*    width:225px;                   /* text area width */
     /*text-align:center;*/
-    padding:20px 20px 20px 20px;     /* image height is 200px (bottom 20px are overlapped with text) */
+    /*padding:5%; */    /* image height is 200px (bottom 20px are overlapped with text) */
 /*    margin:-115px 0px 0px -112px;  /* offset vertical: half of image height and text area height */
                                    /* offset horizontal: half of text area width */
+    background: url(../img/blanket_portrait_0.50.png) no-repeat center center !important;
+    /*height: 100%;*/
+    width: 100%;
+    position: absolute;
 }
 
 .baby {
@@ -131,6 +139,12 @@ h1 {
 
 .showOnly {
 	display:none;
+    background: url(../img/blanket_portrait_0.50_blur.png) no-repeat center center !important;
+    padding: 5%;
+    margin: 5%;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
 }
 
 @keyframes fade {

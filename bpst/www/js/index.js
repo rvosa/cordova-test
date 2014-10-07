@@ -28,7 +28,7 @@ var app = {
         $('#backToRole').on( 'touchstart', function(event){c.showOnly('role')});
         $('#startSession').on( 'touchstart', function(event){ c.startSession() });
         $('#backToSession').on( 'touchstart', function(event){c.showOnly('session')});
-        $('#start').on( 'touchstart', function(event){ c.run() });
+        $('#run').on( 'touchstart', function(event){ c.run() });
         console.log('Attached touch events');
         
     },
@@ -61,6 +61,15 @@ var app = {
         */
         c.showOnly('role');
         console.log('Received Event: ' + id);
+
+        // deal with iOS7 statusbar offset
+        if ( device.platform === 'iOS' && device.version >= 7.0 && device.version < 8.0 ) {
+            console.log('iOS7.* variant, adding status bar margin');
+            $('.app').each(function(){
+                this.style.paddingTop = '5%';
+            });
+        }
+        console.log(device.platform + device.version);
     },
     
     /*
