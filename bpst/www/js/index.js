@@ -66,10 +66,9 @@ var app = {
         if ( device.platform === 'iOS' && device.version >= 7.0 && device.version < 8.0 ) {
             console.log('iOS7.* variant, adding status bar margin');
             $('.app').each(function(){
-                this.style.paddingTop = '5%';
+                this.style.paddingTop = '15px';
             });
         }
-        console.log(device.platform + device.version);
     },
     
     /*
