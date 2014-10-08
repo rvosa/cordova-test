@@ -6,7 +6,7 @@ var BPST = BPST || {};
 		var role = 'baby';
 		var uuid = Math.uuid(6);
 		var session; // is set later
-		var baseUrl = 'http://192.168.178.11:8080/';
+		var baseUrl = 'http://192.168.178.17:8080/';
 		this.maxAttempts = 10;
 		this.intervalMs = 1000;
 
@@ -90,7 +90,7 @@ var BPST = BPST || {};
 			$.ajax({
 				type     : 'GET',
 				url      : url,
-				success  : responseHandler,
+				success  : function(text){responseHandler(JSON.parse(text))},
 				dataType : 'text',
 				data     : requestData,
 				error    : function(xhr,status,err) {
@@ -135,6 +135,9 @@ var BPST = BPST || {};
 							self.showOnly('run');		
 							clearInterval(intervalId);
 						}
+                        else {
+                            console.log('retrieved: '+data);
+                        }
 						if ( attempts == self.maxAttempts ) {
 							alert('giving up');
 							clearInterval(intervalId);
