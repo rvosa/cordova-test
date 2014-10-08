@@ -35,38 +35,46 @@
             
             <!-- role section -->
             <div id="role" class="showOnly">
-                <strong>Set device role</strong>
-                <fieldset data-role="controlgroup">
-                    <input type="radio" name="role" value="baby" id="radio-baby" checked="checked" />
-                    <label for="radio-baby">Baby</label>
-                    <input type="radio" name="role" value="parent" id="radio-parent" />
-                    <label for="radio-parent">Parent</label>
-                 </fieldset>
-                <div style="display:inline;float:right">
-                    <a id="setRole" class="ui-btn ui-corner-all ui-icon-arrow-r ui-btn-icon-notext">Continue</a>
-                 </div>
+                <div><strong>Set device role</strong></div>
+                <table>
+                    <tr>
+                        <td>
+                            <fieldset data-role="controlgroup">
+                                <input type="radio" name="role" value="baby" id="radio-baby" checked="checked" />
+                                <label for="radio-baby" style="color:white;text-shadow:none;">Baby</label>
+                                <input type="radio" name="role" value="parent" id="radio-parent" />
+                                <label for="radio-parent" style="color:white;text-shadow:none;">Parent</label>
+                            </fieldset>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="fw-btn-box">
+                                <a id="setRole" class="ui-btn ui-corner-all ui-icon-arrow-r ui-btn-icon-notext">Continue</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             </div>
 
             <!-- session section -->
             <div id="session" class="showOnly">
-                <div>
-                    <strong>Exchange codes</strong>
-                </div>
-                <table style="width:100%">
+                <div><strong>Exchange codes</strong></div>
+                <table>
                     <tr>
                         <td><input type="text" id="baby" class="sessionPart" /></td>
-                        <td class="inputLabel"><strong>Baby</strong></td>
+                        <td class="inputLabel">Baby</td>
                     </tr>
                     <tr>
                         <td><input type="text" id="parent" class="sessionPart" /></td>
-                        <td class="inputLabel"><strong>Parent</strong></td>
+                        <td class="inputLabel">Parent</td>
                     </tr>
                     <tr>
                         <td colspan="2">
-                            <div style="display:inline;float:left">
+                            <div class="bk-btn-box">
                                 <a id="backToRole" class="ui-btn ui-corner-all ui-icon-arrow-l ui-btn-icon-notext">Back</a>
                             </div>
-                            <div style="display:inline;float:right">
+                            <div class="fw-btn-box">
                                 <a id="startSession" class="ui-btn ui-corner-all ui-icon-arrow-r ui-btn-icon-notext">Continue</a>
                             </div>
                         </td>
